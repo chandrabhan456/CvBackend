@@ -3,3 +3,6 @@ uvicorn
 pymongo
 python-dotenv
 bcrypt
+pymupdf
+python-docx
+python-multipart
