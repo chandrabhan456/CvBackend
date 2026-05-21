@@ -1,19 +1,24 @@
 from fastapi import APIRouter
 from database import users_collection
-from models.user_model import User
+from models.user_model import UserSignup, UserLogin
 import bcrypt
 
 router = APIRouter()
 
+
+# USER SIGNUP
 @router.post("/user/signup")
-async def signup(user: User):
+async def signup(user: UserSignup):
 
     existing = users_collection.find_one({
         "email": user.email
     })
 
     if existing:
-        return {"message": "Email already exists"}
+        return {
+            "success": False,
+            "message": "Email already exists"
+        }
 
     hashed = bcrypt.hashpw(
         user.password.encode(),
@@ -26,17 +31,25 @@ async def signup(user: User):
         "password": hashed
     })
 
-    return {"message": "User created"}
+    return {
+        "success": True,
+        "message": "User created successfully"
+    }
 
+
+# USER LOGIN
 @router.post("/user/login")
-async def login(user: User):
+async def login(user: UserLogin):
 
     db_user = users_collection.find_one({
         "email": user.email
     })
 
     if not db_user:
-        return {"message": "User not found"}
+        return {
+            "success": False,
+            "message": "User not found"
+        }
 
     valid = bcrypt.checkpw(
         user.password.encode(),
@@ -44,6 +57,16 @@ async def login(user: User):
     )
 
     if not valid:
-        return {"message": "Wrong password"}
+        return {
+            "success": False,
+            "message": "Wrong password"
+        }
 
-    return {"message": "User login success"}
+    return {
+        "success": True,
+        "message": "User login success",
+        "user": {
+            "name": db_user["name"],
+            "email": db_user["email"]
+        }
+    }
